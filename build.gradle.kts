@@ -15,6 +15,10 @@ dependencies {
     implementation("io.github.kotlin-telegram-bot.kotlin-telegram-bot:telegram:4.5.0")
 }
 
+task("stage") {
+    dependsOn("build")
+}
+
 tasks {
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
