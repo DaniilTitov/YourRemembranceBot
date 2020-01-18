@@ -7,16 +7,16 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    jcenter()
     maven(url = "https://jitpack.io")
 }
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation("io.github.kotlin-telegram-bot.kotlin-telegram-bot:telegram:4.5.0")
-}
-
-task("stage") {
-    dependsOn("build")
+    implementation("com.natpryce:konfig:1.6.10.0")
+    implementation("org.postgresql:postgresql:42.2.9")
+    implementation("org.jetbrains.exposed:exposed:0.14.1")
 }
 
 tasks {
