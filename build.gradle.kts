@@ -17,6 +17,7 @@ dependencies {
     implementation("com.natpryce:konfig:1.6.10.0")
     implementation("org.postgresql:postgresql:42.2.9")
     implementation("org.jetbrains.exposed:exposed:0.14.1")
+    implementation("com.natpryce:konfig:1.6.10.0")
 }
 
 tasks {
