@@ -4,7 +4,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import technology.bear.database.dao.Cities
-import technology.bear.database.dao.Users
+import technology.bear.database.dao.Tasks
 
 fun initDatabase() {
     connectToDatabase()
@@ -23,8 +23,7 @@ fun connectToDatabase() {
 fun createTables() {
     transaction {
         SchemaUtils.create(
-            Users,
-            Cities
+            Tasks
         )
     }
 }
