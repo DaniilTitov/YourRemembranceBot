@@ -10,6 +10,7 @@ import technology.bear.constans.DB_PASSWORD
 import technology.bear.constans.DB_USER
 import technology.bear.constans.JDBC_DRIVER
 import technology.bear.constans.JDBC_URL
+import technology.bear.database.dao.Events
 import technology.bear.database.dao.Tasks
 
 fun initDatabase(config: ConfigurationProperties) {
@@ -29,7 +30,8 @@ fun connectToDatabase(config: ConfigurationProperties) {
 fun createTables() {
     transaction {
         create(
-            Tasks
+            Tasks,
+            Events
         )
     }
 }

@@ -19,7 +19,7 @@ class Task(id: EntityID<Int>) : IntEntity(id) {
     var taskFrequency by Tasks.taskFrequency
     var userId by Tasks.userId
 
-    class Saver {
+    class Builder {
         private lateinit var taskName: String
         private lateinit var taskFrequency: String
         private var userId: Long by notNull()
@@ -27,11 +27,10 @@ class Task(id: EntityID<Int>) : IntEntity(id) {
         fun taskName(taskName: String) = apply { this.taskName = taskName }
         fun taskFrequency(taskFrequency: String) = apply { this.taskFrequency = taskFrequency }
         fun userId(userId: Long) = apply { this.userId = userId }
-        fun save() = Task.new {
-            taskName = this@Saver.taskName
-            taskFrequency = this@Saver.taskFrequency
-            userId = this@Saver.userId
+        fun newTask() = Task.new {
+            taskName = this@Builder.taskName
+            taskFrequency = this@Builder.taskFrequency
+            userId = this@Builder.userId
         }
     }
 }
-

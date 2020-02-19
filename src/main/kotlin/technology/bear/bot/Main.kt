@@ -16,12 +16,16 @@ import me.ivmg.telegram.extensions.filters.Filter.Custom
 import me.ivmg.telegram.extensions.filters.Filter.Text
 import okhttp3.logging.HttpLoggingInterceptor.Level.BASIC
 import org.jetbrains.exposed.sql.SizedIterable
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.joda.time.DateTime
 import technology.bear.constans.CONFIG_FILE
 import technology.bear.constans.TOKEN_KEY
 import technology.bear.constans.UserState
 import technology.bear.constans.UserState.ADDING_TASK_FREQUENCY
 import technology.bear.constans.UserState.ADDING_TASK_NAME
+import technology.bear.database.dao.Event
+import technology.bear.database.dao.Events
 import technology.bear.database.dao.Task
 import technology.bear.database.dao.Tasks
 import technology.bear.database.initDatabase
@@ -34,7 +38,7 @@ fun main() {
     initDatabase(config)
 
     val userStates = hashMapOf<Long, UserState>()
-    val currentUserTask = hashMapOf<Long, Task.Saver>()
+    val currentUserTask = hashMapOf<Long, Task.Builder>()
 
 
     val bot = bot {
@@ -66,7 +70,7 @@ fun main() {
                 val chatId = update.message?.chat?.id ?: return@message
                 if (userStates[chatId] == ADDING_TASK_NAME) {
 
-                    currentUserTask[chatId] = Task.Saver()
+                    currentUserTask[chatId] = Task.Builder()
                         .userId(chatId)
                         .taskName(update.message?.text!!)
 
@@ -88,8 +92,27 @@ fun main() {
                 currentUserTask[chatId]!!.apply {
                     taskFrequency(update.message?.text!!)
                     transaction {
-                        save()
+                        val task = newTask()
+                        when (task.taskFrequency) {
+                            "Раз в минуту" -> {
+                                Event.new {
+                                    taskId = task
+                                    taskName = task.taskName
+                                    userId = chatId
+                                    taskTime = DateTime.now().plusMinutes(1)
+                                }
+                            }
+                            "Раз в две минуты" -> {
+
+                            }
+                            "Раз в три минуты" -> {
+
+                            }
+
+                        }
+
                         commit()
+
                     }
                 }
 
@@ -121,8 +144,8 @@ fun main() {
 
     fixedRateTimer(period = 5000, action = {
         transaction {
-            Task.all().forEach {
-                bot.sendMessage(chatId = it.userId, text = it.taskName + "\n" + it.taskFrequency + "\n")
+            Event.find { Events.taskTime.less(DateTime.now()) }.forEach {
+                bot.sendMessage(chatId = it.userId, text = "Напоминаю о " + it.taskName)
             }
         }
     })
@@ -142,9 +165,9 @@ fun generateUsersButton(): List<List<KeyboardButton>> {
 fun generateUsersButton1(): List<List<KeyboardButton>> {
     return listOf(
         listOf(
-            KeyboardButton("Каждый день"),
-            KeyboardButton("Раз в неделю"),
-            KeyboardButton("Раз в месяц")
+            KeyboardButton("Раз в минуту"),
+            KeyboardButton("Раз в две минуты"),
+            KeyboardButton("Раз в три минуты")
         )
     )
 }
