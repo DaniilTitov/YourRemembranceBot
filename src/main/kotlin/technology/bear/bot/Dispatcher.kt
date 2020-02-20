@@ -77,7 +77,6 @@ fun Dispatcher.handleSavingTask(
                     "Раз в минуту" -> {
                         Event.new {
                             this.task = task
-                            userId = chatId
                             taskTime = DateTime.now().plusMinutes(1)
                             status = EventStatus.ACTIVE.toString()
                         }

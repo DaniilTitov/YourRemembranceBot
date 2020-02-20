@@ -14,11 +14,10 @@ fun runScheduler(bot: Bot) {
         transaction {
             Event.find { Events.taskTime.less(DateTime.now()) and Events.status.eq(EventStatus.ACTIVE.toString()) }
                 .forEach {
-                    bot.sendMessage(chatId = it.userId, text = "Напоминаю о " + it.task.taskName)
+                    bot.sendMessage(chatId = it.task.userId, text = "Напоминаю о " + it.task.taskName)
                     it.status = EventStatus.SENT.toString()
                     Event.new {
                         this.task = it.task
-                        this.userId = it.userId
                         this.taskTime = it.taskTime.plusMinutes(1)
                         this.status = EventStatus.ACTIVE.toString()
                     }
