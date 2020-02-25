@@ -8,25 +8,24 @@ import me.ivmg.telegram.entities.KeyboardReplyMarkup
 import me.ivmg.telegram.entities.ParseMode.MARKDOWN
 import me.ivmg.telegram.entities.ReplyKeyboardRemove
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.joda.time.DateTime
 import technology.bear.bot.message.*
-import technology.bear.constans.EventStatus.ACTIVE
-import technology.bear.constans.TaskFrequency.*
-import technology.bear.constans.TaskFrequency.Companion.parseTaskFrequency
+import technology.bear.constans.CallbackData.SUCCESSFULLY
+import technology.bear.constans.CallbackData.UNSUCCESSFUL
 import technology.bear.constans.UserState
 import technology.bear.constans.UserState.ADDING_TASK_FREQUENCY
 import technology.bear.constans.UserState.ADDING_TASK_NAME
-import technology.bear.database.dao.Event
+import technology.bear.constans.happySmiles
+import technology.bear.constans.sadSmiles
 import technology.bear.database.dao.Task
 import technology.bear.database.dao.Tasks
+import technology.bear.database.dao.createNewEvent
 
 fun Dispatcher.handleStartCommand() {
     command("start") { bot, update ->
-        val keyboardMarkup = KeyboardReplyMarkup(keyboard = generateMainMenuButtons(), resizeKeyboard = true)
         bot.sendMessage(
             chatId = update.message!!.chat.id,
             text = "Дратути, выберите что хотите сделать",
-            replyMarkup = keyboardMarkup
+            replyMarkup = mainMenuMarkup
         )
     }
 }
@@ -53,13 +52,10 @@ fun Dispatcher.handleAddingTaskFrequency(
 
             userStates[chatId] = ADDING_TASK_FREQUENCY
 
-            val keyboardMarkup =
-                KeyboardReplyMarkup(keyboard = taskFrequencyButtons, resizeKeyboard = true)
-
             bot.sendMessage(
                 chatId = chatId,
                 text = "Выберите периодичность цели",
-                replyMarkup = keyboardMarkup
+                replyMarkup = taskFrequencyMarkup
             )
         }
     }
@@ -84,27 +80,11 @@ fun Dispatcher.handleSavingTask(
         userStates.remove(chatId)
         currentUserTask.remove(chatId)
 
-        val keyboardMarkup = KeyboardReplyMarkup(keyboard = generateMainMenuButtons(), resizeKeyboard = true)
-
         bot.sendMessage(
             chatId = chatId,
             text = "Цель сохранена",
-            replyMarkup = keyboardMarkup
+            replyMarkup = mainMenuMarkup
         )
-    }
-}
-
-private fun createNewEvent(task: Task) {
-
-    Event.new {
-        this.task = task
-        this.status = ACTIVE
-        this.taskTime = when (parseTaskFrequency(task.taskFrequency)) {
-            ONCE_A_MINUTE -> DateTime.now().plusMinutes(1)
-            TWICE_A_MINUTE -> DateTime.now().plusMinutes(2)
-            THREE_TIMES_A_MINUTE -> DateTime.now().plusMinutes(3)
-            null -> TODO()
-        }
     }
 }
 
@@ -124,31 +104,33 @@ fun Dispatcher.handleShowingTasks() {
 }
 
 fun Dispatcher.handleCallback() {
-    callbackQuery("yes") { bot, update ->
+    callbackQuery(SUCCESSFULLY.name) { bot, update ->
 
         val callbackQuery = update.callbackQuery!!
         val markdown = callbackQuery.message?.entities?.get(0)!!
         val taskName = callbackQuery.message?.text!!.substring(markdown.offset, markdown.offset + markdown.length)
+        val smile = happySmiles.random()
 
         bot.editMessageText(
             chatId = callbackQuery.from.id,
             messageId = callbackQuery.message?.messageId,
             parseMode = MARKDOWN,
-            text = "\uD83D\uDC4D Поздравляю! У тебя получилось выполнить цель *$taskName* \uD83D\uDC4D"
+            text = "$smile Поздравляю! У тебя получилось выполнить цель *$taskName* $smile"
         )
     }
 
-    callbackQuery("no") { bot, update ->
+    callbackQuery(UNSUCCESSFUL.name) { bot, update ->
 
         val callbackQuery = update.callbackQuery!!
         val markdown = callbackQuery.message?.entities?.get(0)!!
         val taskName = callbackQuery.message?.text!!.substring(markdown.offset, markdown.offset + markdown.length)
+        val smile = sadSmiles.random()
 
         bot.editMessageText(
             chatId = callbackQuery.from.id,
             messageId = callbackQuery.message?.messageId,
             parseMode = MARKDOWN,
-            text = "\uD83D\uDCA9 Не получилось даже *$taskName*. Ну ничего, в следующий раз всё получится \uD83D\uDCA9"
+            text = "$smile Ничего, в следующий раз *$taskName* обязательно получится $smile"
         )
     }
 }
