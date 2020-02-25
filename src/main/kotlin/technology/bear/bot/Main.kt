@@ -33,6 +33,7 @@ fun main() {
             handleAddingTaskFrequency(userStates, currentUserTask)
             handleSavingTask(userStates, currentUserTask)
             handleShowingTasks()
+            handleCallback()
         }
     }
 
