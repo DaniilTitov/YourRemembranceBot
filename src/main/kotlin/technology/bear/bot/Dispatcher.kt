@@ -5,13 +5,12 @@ import me.ivmg.telegram.dispatcher.callbackQuery
 import me.ivmg.telegram.dispatcher.command
 import me.ivmg.telegram.dispatcher.message
 import me.ivmg.telegram.entities.KeyboardReplyMarkup
-import me.ivmg.telegram.entities.ParseMode
 import me.ivmg.telegram.entities.ParseMode.MARKDOWN
 import me.ivmg.telegram.entities.ReplyKeyboardRemove
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.joda.time.DateTime
 import technology.bear.bot.message.*
-import technology.bear.constans.EventStatus
+import technology.bear.constans.EventStatus.ACTIVE
 import technology.bear.constans.TaskFrequency.*
 import technology.bear.constans.TaskFrequency.Companion.parseTaskFrequency
 import technology.bear.constans.UserState
@@ -55,7 +54,7 @@ fun Dispatcher.handleAddingTaskFrequency(
             userStates[chatId] = ADDING_TASK_FREQUENCY
 
             val keyboardMarkup =
-                KeyboardReplyMarkup(keyboard = generateTaskFrequencyButtons(), resizeKeyboard = true)
+                KeyboardReplyMarkup(keyboard = taskFrequencyButtons, resizeKeyboard = true)
 
             bot.sendMessage(
                 chatId = chatId,
@@ -77,31 +76,7 @@ fun Dispatcher.handleSavingTask(
             taskFrequency(update.message?.text!!)
             transaction {
                 val task = newTask()
-
-                when (parseTaskFrequency(task.taskFrequency)) {
-                    ONCE_A_MINUTE -> {
-                        Event.new {
-                            this.task = task
-                            taskTime = DateTime.now().plusMinutes(1)
-                            status = EventStatus.ACTIVE
-                        }
-                    }
-                    TWICE_A_MINUTE -> {
-                        Event.new {
-                            this.task = task
-                            taskTime = DateTime.now().plusMinutes(2)
-                            status = EventStatus.ACTIVE
-                        }
-                    }
-                    THREE_TIMES_A_MINUTE -> {
-                        Event.new {
-                            this.task = task
-                            taskTime = DateTime.now().plusMinutes(3)
-                            status = EventStatus.ACTIVE
-                        }
-                    }
-
-                }
+                createNewEvent(task)
                 commit()
             }
         }
@@ -116,6 +91,20 @@ fun Dispatcher.handleSavingTask(
             text = "Цель сохранена",
             replyMarkup = keyboardMarkup
         )
+    }
+}
+
+private fun createNewEvent(task: Task) {
+
+    Event.new {
+        this.task = task
+        this.status = ACTIVE
+        this.taskTime = when (parseTaskFrequency(task.taskFrequency)) {
+            ONCE_A_MINUTE -> DateTime.now().plusMinutes(1)
+            TWICE_A_MINUTE -> DateTime.now().plusMinutes(2)
+            THREE_TIMES_A_MINUTE -> DateTime.now().plusMinutes(3)
+            null -> TODO()
+        }
     }
 }
 

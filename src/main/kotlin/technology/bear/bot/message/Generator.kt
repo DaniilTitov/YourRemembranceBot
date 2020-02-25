@@ -3,6 +3,7 @@ package technology.bear.bot.message
 import me.ivmg.telegram.entities.InlineKeyboardButton
 import me.ivmg.telegram.entities.KeyboardButton
 import org.jetbrains.exposed.sql.SizedIterable
+import technology.bear.constans.TaskFrequency
 import technology.bear.database.dao.Task
 
 fun generatePeriodicalTaskInfo(userTasks: SizedIterable<Task>): String {
@@ -13,20 +14,13 @@ fun generatePeriodicalTaskInfo(userTasks: SizedIterable<Task>): String {
     return answer.toString()
 }
 
-fun generateTaskFrequencyButtons(): List<List<KeyboardButton>> {
-    return listOf(
-        listOf(
-            KeyboardButton("Раз в минуту"),
-            KeyboardButton("Раз в две минуты"),
-            KeyboardButton("Раз в три минуты")
-        )
-    )
-}
+val taskFrequencyButtons = listOf(TaskFrequency.values().map { KeyboardButton(it.toString()) }.toList())
+
 
 fun generateMainMenuButtons(): List<List<KeyboardButton>> {
     return listOf(
         listOf(
-            KeyboardButton("Добавь цель"),
+            KeyboardButton("Добавь периодическую цель"),
             KeyboardButton("Покажи все мои цели")
         )
     )

@@ -13,7 +13,7 @@ fun newTaskFilter(userStates: HashMap<Long, UserState>): Custom {
     return Custom {
         userStates[chat.id] != ADDING_TASK_NAME
                 && userStates[chat.id] != ADDING_TASK_FREQUENCY
-                && text.equals("Добавь цель")
+                && text.equals("Добавь периодическую цель")
     }
 }
 
