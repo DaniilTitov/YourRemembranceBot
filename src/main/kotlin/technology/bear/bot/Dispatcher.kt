@@ -4,10 +4,12 @@ import me.ivmg.telegram.dispatcher.Dispatcher
 import me.ivmg.telegram.dispatcher.callbackQuery
 import me.ivmg.telegram.dispatcher.command
 import me.ivmg.telegram.dispatcher.message
-import me.ivmg.telegram.entities.KeyboardReplyMarkup
 import me.ivmg.telegram.entities.ParseMode.MARKDOWN
 import me.ivmg.telegram.entities.ReplyKeyboardRemove
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import technology.bear.bot.message.*
 import technology.bear.constans.CallbackData.SUCCESSFULLY
 import technology.bear.constans.CallbackData.UNSUCCESSFUL
@@ -17,8 +19,8 @@ import technology.bear.constans.UserState.ADDING_TASK_NAME
 import technology.bear.constans.happySmiles
 import technology.bear.constans.sadSmiles
 import technology.bear.database.dao.Task
-import technology.bear.database.dao.Tasks
-import technology.bear.database.dao.createNewEvent
+import technology.bear.database.dsl.Statistics
+import technology.bear.database.dsl.Tasks
 
 fun Dispatcher.handleStartCommand() {
     command("start") { bot, update ->
@@ -71,8 +73,10 @@ fun Dispatcher.handleSavingTask(
         currentUserTask[chatId]!!.apply {
             taskFrequency(update.message?.text!!)
             transaction {
-                val task = newTask()
-                createNewEvent(task)
+                newTask().apply {
+                    createNewEvent()
+                    createNewStatistic()
+                }
                 commit()
             }
         }
@@ -93,13 +97,25 @@ fun Dispatcher.handleShowingTasks() {
         val chatId = update.message?.chat?.id ?: return@message
 
         transaction {
-            val userTasks = Task.find { Tasks.userId eq chatId }
+            val tasksData = (Tasks innerJoin Statistics).slice(
+                Tasks.taskName,
+                Tasks.taskFrequency,
+                Statistics.completedCount,
+                Statistics.uncompletedCount
+            ).select { Tasks.userId eq chatId }
+
             bot.sendMessage(
                 chatId = chatId,
-                text = generatePeriodicalTaskInfo(userTasks),
+                text = generatePeriodicalTaskInfo(tasksData),
                 parseMode = MARKDOWN
             )
         }
+    }
+}
+
+fun Dispatcher.handleRemovingTask() {
+    message(removeTasksFilter) { bot, update ->
+
     }
 }
 
@@ -110,6 +126,14 @@ fun Dispatcher.handleCallback() {
         val markdown = callbackQuery.message?.entities?.get(0)!!
         val taskName = callbackQuery.message?.text!!.substring(markdown.offset, markdown.offset + markdown.length)
         val smile = happySmiles.random()
+
+        transaction {
+            Statistics.update({ Statistics.id eq callbackQuery.data.split(" ").last().toInt() }) {
+                with(SqlExpressionBuilder) {
+                    it.update(completedCount, completedCount + 1)
+                }
+            }
+        }
 
         bot.editMessageText(
             chatId = callbackQuery.from.id,
@@ -125,6 +149,14 @@ fun Dispatcher.handleCallback() {
         val markdown = callbackQuery.message?.entities?.get(0)!!
         val taskName = callbackQuery.message?.text!!.substring(markdown.offset, markdown.offset + markdown.length)
         val smile = sadSmiles.random()
+
+        transaction {
+            Statistics.update({ Statistics.id eq callbackQuery.data.split(" ").last().toInt() }) {
+                with(SqlExpressionBuilder) {
+                    it.update(uncompletedCount, uncompletedCount + 1)
+                }
+            }
+        }
 
         bot.editMessageText(
             chatId = callbackQuery.from.id,

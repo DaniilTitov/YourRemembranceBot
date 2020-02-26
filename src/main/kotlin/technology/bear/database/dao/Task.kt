@@ -3,14 +3,11 @@ package technology.bear.database.dao
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
-import org.jetbrains.exposed.dao.IntIdTable
+import org.joda.time.DateTime
+import technology.bear.constans.EventStatus.ACTIVE
+import technology.bear.constans.TaskFrequency
+import technology.bear.database.dsl.Tasks
 import kotlin.properties.Delegates.notNull
-
-object Tasks : IntIdTable() {
-    val taskName = Tasks.varchar("taskName", length = 256)
-    val taskFrequency = Tasks.varchar("taskFrequency", length = 32)
-    val userId = Tasks.long("userId")
-}
 
 class Task(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<Task>(Tasks)
@@ -31,6 +28,27 @@ class Task(id: EntityID<Int>) : IntEntity(id) {
             taskName = this@Builder.taskName
             taskFrequency = this@Builder.taskFrequency
             userId = this@Builder.userId
+        }
+    }
+
+    fun createNewEvent() {
+        Event.new {
+            this.task = this@Task
+            this.status = ACTIVE
+            this.taskTime = when (TaskFrequency.parseTaskFrequency(this@Task.taskFrequency)) {
+                TaskFrequency.ONCE_A_MINUTE -> DateTime.now().plusMinutes(1)
+                TaskFrequency.TWICE_A_MINUTE -> DateTime.now().plusMinutes(2)
+                TaskFrequency.THREE_TIMES_A_MINUTE -> DateTime.now().plusMinutes(3)
+                null -> TODO()
+            }
+        }
+    }
+
+    fun createNewStatistic() {
+        Statistic.new {
+            this.task = this@Task
+            this.completedCount = 0
+            this.uncompletedCount = 0
         }
     }
 }

@@ -9,6 +9,8 @@ import technology.bear.constans.UserState.ADDING_TASK_NAME
 
 val showAllTasksFilter = Custom { text.equals("Покажи все мои цели") }
 
+val removeTasksFilter = Custom { text.equals("Удалить цель") }
+
 fun newTaskFilter(userStates: HashMap<Long, UserState>): Custom {
     return Custom {
         userStates[chat.id] != ADDING_TASK_NAME
