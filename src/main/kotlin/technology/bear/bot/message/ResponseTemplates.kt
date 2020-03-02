@@ -6,9 +6,11 @@ import me.ivmg.telegram.entities.KeyboardButton
 import me.ivmg.telegram.entities.KeyboardReplyMarkup
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.Query
+import org.jetbrains.exposed.sql.SizedIterable
 import technology.bear.constans.CallbackData
 import technology.bear.constans.MainCommands
 import technology.bear.constans.TaskFrequency
+import technology.bear.database.dao.Task
 import technology.bear.database.dsl.Statistics
 import technology.bear.database.dsl.Tasks
 
@@ -52,3 +54,13 @@ val mainMenuMarkup = KeyboardReplyMarkup(
     }).toList(),
     resizeKeyboard = true
 )
+
+fun generateRemoveMenuMarkup(tasks: SizedIterable<Task>): KeyboardReplyMarkup {
+    val buttons = mutableListOf(tasks.map { KeyboardButton(it.taskName) })
+    buttons.add(listOf(KeyboardButton("Отмена")))
+
+    return KeyboardReplyMarkup(
+        keyboard = buttons,
+        resizeKeyboard = true
+    )
+}

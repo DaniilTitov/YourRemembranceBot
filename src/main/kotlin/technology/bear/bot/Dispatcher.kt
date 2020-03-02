@@ -6,24 +6,27 @@ import me.ivmg.telegram.dispatcher.command
 import me.ivmg.telegram.dispatcher.message
 import me.ivmg.telegram.entities.ParseMode.MARKDOWN
 import me.ivmg.telegram.entities.ReplyKeyboardRemove
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import technology.bear.bot.message.*
 import technology.bear.constans.CallbackData.SUCCESSFULLY
 import technology.bear.constans.CallbackData.UNSUCCESSFUL
 import technology.bear.constans.UserState
-import technology.bear.constans.UserState.ADDING_TASK_FREQUENCY
-import technology.bear.constans.UserState.ADDING_TASK_NAME
+import technology.bear.constans.UserState.*
 import technology.bear.constans.happySmiles
 import technology.bear.constans.sadSmiles
 import technology.bear.database.dao.Task
+import technology.bear.database.dsl.Events
 import technology.bear.database.dsl.Statistics
 import technology.bear.database.dsl.Tasks
 
-fun Dispatcher.handleStartCommand() {
+fun Dispatcher.handleStartCommand(userStates: HashMap<Long, UserState>, currentUserTask: HashMap<Long, Task.Builder>) {
     command("start") { bot, update ->
+        val chatId = update.message?.chat?.id ?: return@command
+
+        userStates.remove(chatId)
+        currentUserTask.remove(chatId)
+
         bot.sendMessage(
             chatId = update.message!!.chat.id,
             text = "Дратути, выберите что хотите сделать",
@@ -46,20 +49,58 @@ fun Dispatcher.handleAddingTaskFrequency(
 ) {
     message(taskNameFilter(userStates)) { bot, update ->
         val chatId = update.message?.chat?.id ?: return@message
-        if (userStates[chatId] == ADDING_TASK_NAME) {
+        val text = update.message?.text!!
 
-            currentUserTask[chatId] = Task.Builder()
-                .userId(chatId)
-                .taskName(update.message?.text!!)
+        if (text.length > 256) {
+            bot.sendMessage(chatId = chatId, text = "Название цели не должно содержать больше 256 символов")
+            return@message
+        }
 
-            userStates[chatId] = ADDING_TASK_FREQUENCY
+        currentUserTask[chatId] = Task.Builder()
+            .userId(chatId)
+            .taskName(text)
+
+        userStates[chatId] = ADDING_TASK_FREQUENCY
+
+        bot.sendMessage(
+            chatId = chatId,
+            text = "Выберите периодичность цели",
+            replyMarkup = taskFrequencyMarkup
+        )
+    }
+}
+
+fun Dispatcher.handleRemovingTaskName(userStates: HashMap<Long, UserState>) {
+    message(removingTaskNameFilter(userStates)) { bot, update ->
+        val chatId = update.message?.chat?.id ?: return@message
+        val text = update.message?.text!!
+
+        if (text == "Отмена") {
+            userStates.remove(chatId)
 
             bot.sendMessage(
                 chatId = chatId,
-                text = "Выберите периодичность цели",
-                replyMarkup = taskFrequencyMarkup
+                text = "Дратути, выберите что хотите сделать",
+                replyMarkup = mainMenuMarkup
             )
+
+            return@message
         }
+
+        transaction {
+            val tasks = Task.find { (Tasks.userId eq chatId) and (Tasks.taskName eq text) }.map { it.id }.toList()
+            Events.deleteWhere { Events.task inList tasks }
+            Statistics.deleteWhere { Statistics.id inList tasks }
+            Tasks.deleteWhere { (Tasks.userId eq chatId) and (Tasks.taskName.eq(text)) }
+        }
+
+        userStates.remove(chatId)
+
+        bot.sendMessage(
+            chatId = chatId,
+            text = "Цель удалена",
+            replyMarkup = mainMenuMarkup
+        )
     }
 }
 
@@ -113,9 +154,20 @@ fun Dispatcher.handleShowingTasks() {
     }
 }
 
-fun Dispatcher.handleRemovingTask() {
+fun Dispatcher.handleRemovingTask(userStates: HashMap<Long, UserState>) {
     message(removeTasksFilter) { bot, update ->
+        val chatId = update.message?.chat?.id ?: return@message
 
+        transaction {
+            bot.sendMessage(
+                chatId = chatId,
+                text = "Какую задачу удалить?",
+                parseMode = MARKDOWN,
+                replyMarkup = generateRemoveMenuMarkup(Task.find { Tasks.userId eq chatId })
+            )
+        }
+
+        userStates[chatId] = REMOVING_TASK
     }
 }
 

@@ -2,5 +2,6 @@ package technology.bear.constans
 
 enum class UserState {
     ADDING_TASK_NAME,
-    ADDING_TASK_FREQUENCY
+    ADDING_TASK_FREQUENCY,
+    REMOVING_TASK
 }

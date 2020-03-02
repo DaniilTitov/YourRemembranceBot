@@ -28,12 +28,13 @@ fun main() {
         logLevel = BASIC
 
         dispatch {
-            handleStartCommand()
+            handleStartCommand(userStates, currentUserTask)
             handleAddingTask(userStates)
             handleAddingTaskFrequency(userStates, currentUserTask)
             handleSavingTask(userStates, currentUserTask)
             handleShowingTasks()
-            handleRemovingTask()
+            handleRemovingTask(userStates)
+            handleRemovingTaskName(userStates)
             handleCallback()
         }
     }
