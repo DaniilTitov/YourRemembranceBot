@@ -27,4 +27,10 @@ tasks {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }
+    jar {
+        manifest {
+            attributes["Main-Class"] = "technology.bear.bot.MainKt"
+        }
+        from(configurations.runtime.get().map { if (it.isDirectory) it else zipTree(it) })
+    }
 }
