@@ -1,9 +1,10 @@
 package technology.bear.constans
 
 enum class TaskFrequency(public val frequencyMessage: String, private val period: String) {
-    ONCE_A_MINUTE("Раз в минуту", "1M"),
-    TWICE_A_MINUTE("Раз в две минуты", "2M"),
-    THREE_TIMES_A_MINUTE("Раз в три минуты", "3M");
+    EVERY_DAY("Раз в день", "1D"),
+    EVERY_TWO_DAYS("Раз в два дня", "2D"),
+    EVERY_WEEK("Раз в неделю", "1W"),
+    EVERY_MONTH("Раз в месяц", "1M");
 
     companion object {
         fun parseTaskFrequency(frequency: String): TaskFrequency? {

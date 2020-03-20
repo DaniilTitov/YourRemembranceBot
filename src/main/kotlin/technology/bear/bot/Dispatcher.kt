@@ -11,6 +11,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import technology.bear.bot.message.*
 import technology.bear.constans.CallbackData.SUCCESSFULLY
 import technology.bear.constans.CallbackData.UNSUCCESSFUL
+import technology.bear.constans.TaskFrequency
 import technology.bear.constans.UserState
 import technology.bear.constans.UserState.*
 import technology.bear.constans.happySmiles
@@ -110,9 +111,19 @@ fun Dispatcher.handleSavingTask(
 ) {
     message(taskFrequencyFilter(userStates)) { bot, update ->
         val chatId = update.message?.chat?.id ?: return@message
+        val taskFrequency = update.message?.text!!
+
+        // todo: remove this shit
+        if (!TaskFrequency.values().map { it.frequencyMessage }.contains(taskFrequency)) {
+            bot.sendMessage(
+                chatId = chatId,
+                text = "Выберите значение из списка"
+            )
+            return@message
+        }
 
         currentUserTask[chatId]!!.apply {
-            taskFrequency(update.message?.text!!)
+            taskFrequency(taskFrequency)
             transaction {
                 newTask().apply {
                     createNewEvent()

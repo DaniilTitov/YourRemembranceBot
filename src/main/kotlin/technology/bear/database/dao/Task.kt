@@ -6,6 +6,7 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.joda.time.DateTime
 import technology.bear.constans.EventStatus.ACTIVE
 import technology.bear.constans.TaskFrequency
+import technology.bear.constans.TaskFrequency.*
 import technology.bear.database.dsl.Tasks
 import kotlin.properties.Delegates.notNull
 
@@ -36,9 +37,10 @@ class Task(id: EntityID<Int>) : IntEntity(id) {
             this.task = this@Task
             this.status = ACTIVE
             this.taskTime = when (TaskFrequency.parseTaskFrequency(this@Task.taskFrequency)) {
-                TaskFrequency.ONCE_A_MINUTE -> DateTime.now().plusMinutes(1)
-                TaskFrequency.TWICE_A_MINUTE -> DateTime.now().plusMinutes(2)
-                TaskFrequency.THREE_TIMES_A_MINUTE -> DateTime.now().plusMinutes(3)
+                EVERY_DAY -> DateTime.now().plusDays(1)
+                EVERY_TWO_DAYS -> DateTime.now().plusDays(2)
+                EVERY_WEEK -> DateTime.now().plusWeeks(1)
+                EVERY_MONTH -> DateTime.now().plusMonths(1)
                 null -> TODO()
             }
         }

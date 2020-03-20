@@ -1,5 +1,8 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     kotlin("jvm") version "1.3.61"
+    id("com.github.johnrengelman.shadow") version "5.2.0"
 }
 
 group = "technology.bear"
@@ -17,7 +20,12 @@ dependencies {
     implementation("com.natpryce:konfig:1.6.10.0")
     implementation("org.postgresql:postgresql:42.2.9")
     implementation("org.jetbrains.exposed:exposed:0.14.1")
-    implementation("com.natpryce:konfig:1.6.10.0")
+}
+
+tasks.withType<ShadowJar>() {
+    manifest {
+        attributes["Main-Class"] = "technology.bear.bot.MainKt"
+    }
 }
 
 tasks {
@@ -26,11 +34,5 @@ tasks {
     }
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
-    }
-    jar {
-        manifest {
-            attributes["Main-Class"] = "technology.bear.bot.MainKt"
-        }
-        from(configurations.runtime.get().map { if (it.isDirectory) it else zipTree(it) })
     }
 }
