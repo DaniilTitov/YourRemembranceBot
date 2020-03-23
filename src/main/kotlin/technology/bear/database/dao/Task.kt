@@ -41,7 +41,7 @@ class Task(id: EntityID<Int>) : IntEntity(id) {
                 EVERY_TWO_DAYS -> DateTime.now().plusDays(2)
                 EVERY_WEEK -> DateTime.now().plusWeeks(1)
                 EVERY_MONTH -> DateTime.now().plusMonths(1)
-                null -> TODO()
+                null -> DateTime.now()
             }
         }
     }

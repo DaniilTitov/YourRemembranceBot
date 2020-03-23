@@ -9,13 +9,11 @@ import me.ivmg.telegram.entities.ReplyKeyboardRemove
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import technology.bear.bot.message.*
+import technology.bear.constans.*
 import technology.bear.constans.CallbackData.SUCCESSFULLY
 import technology.bear.constans.CallbackData.UNSUCCESSFUL
-import technology.bear.constans.TaskFrequency
-import technology.bear.constans.UserState
+import technology.bear.constans.EventStatus.*
 import technology.bear.constans.UserState.*
-import technology.bear.constans.happySmiles
-import technology.bear.constans.sadSmiles
 import technology.bear.database.dao.Task
 import technology.bear.database.dsl.Events
 import technology.bear.database.dsl.Statistics
@@ -149,12 +147,13 @@ fun Dispatcher.handleShowingTasks() {
         val chatId = update.message?.chat?.id ?: return@message
 
         transaction {
-            val tasksData = (Tasks innerJoin Statistics).slice(
+            val tasksData = (Tasks innerJoin Statistics innerJoin Events).slice(
                 Tasks.taskName,
                 Tasks.taskFrequency,
                 Statistics.completedCount,
-                Statistics.uncompletedCount
-            ).select { Tasks.userId eq chatId }
+                Statistics.uncompletedCount,
+                Events.taskTime
+            ).select { (Tasks.userId eq chatId) and (Events.status eq ACTIVE) }
 
             bot.sendMessage(
                 chatId = chatId,
