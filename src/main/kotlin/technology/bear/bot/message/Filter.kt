@@ -10,7 +10,7 @@ val showAllTasksFilter = Custom { text.equals("Покажи все мои цел
 
 val removeTasksFilter = Custom { text.equals("Удалить цель") }
 
-fun newTaskFilter(userStates: HashMap<Long, UserState>): Custom {
+fun newTaskFilter(userStates: Map<Long, UserState>): Custom {
     return Custom {
         userStates[chat.id] != ADDING_TASK_NAME
                 && userStates[chat.id] != ADDING_TASK_FREQUENCY
@@ -18,11 +18,11 @@ fun newTaskFilter(userStates: HashMap<Long, UserState>): Custom {
     }
 }
 
-fun taskFrequencyFilter(userStates: HashMap<Long, UserState>) =
+fun taskFrequencyFilter(userStates: Map<Long, UserState>) =
     Text and Custom { userStates[chat.id] == ADDING_TASK_FREQUENCY }
 
-fun taskNameFilter(userStates: HashMap<Long, UserState>) =
+fun taskNameFilter(userStates: Map<Long, UserState>) =
     Text and Custom { userStates[chat.id] == ADDING_TASK_NAME }
 
-fun removingTaskNameFilter(userStates: HashMap<Long, UserState>) =
+fun removingTaskNameFilter(userStates: Map<Long, UserState>) =
     Text and Custom { userStates[chat.id] == REMOVING_TASK }

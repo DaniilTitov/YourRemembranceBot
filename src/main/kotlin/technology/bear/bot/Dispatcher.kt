@@ -88,7 +88,7 @@ fun Dispatcher.handleRemovingTaskName(userStates: HashMap<Long, UserState>) {
 
         transaction {
             val tasks = Task.find { (Tasks.userId eq chatId) and (Tasks.taskName eq text) }.map { it.id }.toList()
-            Events.deleteWhere { Events.task inList tasks }
+            Events.deleteWhere { Events.id inList tasks }
             Statistics.deleteWhere { Statistics.id inList tasks }
             Tasks.deleteWhere { (Tasks.userId eq chatId) and (Tasks.taskName.eq(text)) }
         }

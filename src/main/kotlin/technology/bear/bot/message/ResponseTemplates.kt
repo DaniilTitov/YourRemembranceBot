@@ -30,7 +30,7 @@ fun generatePeriodicalTaskInfo(taskData: Query): String {
                     "Периодичность: *${data[Tasks.taskFrequency]}*\n" +
                     "Получилось выполнить раз - *${data[Statistics.completedCount]}*\n" +
                     "Не получилось выполнить раз - *${data[Statistics.uncompletedCount]}*\n" +
-                    "Следующее оповещение через ${ if (period.days > 0) {period.days.toString() + "дней, " } else ""} ${period.hours} часов, ${period.minutes} минут\n\n"
+                    "Следующее оповещение через${ if (period.days > 0) {period.days.toString() + "дней, " } else ""} ${period.hours} часов, ${period.minutes} минут\n\n"
         )
     }
     return answer.toString()
