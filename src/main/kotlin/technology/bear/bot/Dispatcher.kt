@@ -8,6 +8,7 @@ import me.ivmg.telegram.entities.ParseMode.MARKDOWN
 import me.ivmg.telegram.entities.ReplyKeyboardRemove
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.joda.time.DateTime
 import technology.bear.bot.message.*
 import technology.bear.constans.*
 import technology.bear.constans.CallbackData.SUCCESSFULLY
@@ -124,7 +125,7 @@ fun Dispatcher.handleSavingTask(
             taskFrequency(taskFrequency)
             transaction {
                 newTask().apply {
-                    createNewEvent()
+                    createNewEvent(DateTime.now())
                     createNewStatistic()
                 }
                 commit()

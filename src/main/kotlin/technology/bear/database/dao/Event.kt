@@ -9,7 +9,7 @@ import technology.bear.database.dsl.Events
 class Event(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<Event>(Events)
 
-    var task by Task referencedOn Events.id
+    var task by Task referencedOn Events.task
     var taskTime by Events.taskTime
     var status by Events.status
 }

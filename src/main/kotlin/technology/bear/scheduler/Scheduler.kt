@@ -27,7 +27,7 @@ fun runScheduler(bot: Bot) {
 
                 it.status = SENT
 
-                task.createNewEvent()
+                task.createNewEvent(it.taskTime)
             }
         }
     })

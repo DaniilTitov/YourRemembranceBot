@@ -32,16 +32,16 @@ class Task(id: EntityID<Int>) : IntEntity(id) {
         }
     }
 
-    fun createNewEvent() {
+    fun createNewEvent(now: DateTime) {
         Event.new {
             this.task = this@Task
             this.status = ACTIVE
             this.taskTime = when (TaskFrequency.parseTaskFrequency(this@Task.taskFrequency)) {
-                EVERY_DAY -> DateTime.now().plusDays(1)
-                EVERY_TWO_DAYS -> DateTime.now().plusDays(2)
-                EVERY_WEEK -> DateTime.now().plusWeeks(1)
-                EVERY_MONTH -> DateTime.now().plusMonths(1)
-                null -> DateTime.now()
+                EVERY_DAY -> now.plusDays(1)
+                EVERY_TWO_DAYS -> now.plusDays(2)
+                EVERY_WEEK -> now.plusWeeks(1)
+                EVERY_MONTH -> now.plusMonths(1)
+                null -> now
             }
         }
     }
